@@ -8,7 +8,7 @@
 #define ECHO 7 // Echo Pin
 #define TRIG 18 // Trigger Pin
 
-#define BUFFER_S 10
+#define BASELINE_S 20 // How many reading to use to measure our baseline
 
 #define TOLERANCE 0.5 // A number that represents how much deviation we allow.
 
@@ -73,7 +73,7 @@ void setup(){
   printWifiStatus();
   
   Serial.println("Starting webserver on port 80");
-  server.begin();                           // start the web server on port 80
+  server.begin(); // start the web server on port 80
   Serial.println("Webserver started!");
 
   /* Initialize LED states to OFF */
@@ -94,7 +94,7 @@ void loop(){
   }
   
   if(armed && !alarm){
-    sonicRead = getBaseline();
+    sonicRead = getMedianReadings(BASELINE_S);
     if(sonicRead < baseline / (1 + TOLERANCE) || sonicRead > baseline * (1 + TOLERANCE)) {
       alarm = true;
       i = 0;
@@ -124,12 +124,47 @@ void loop(){
 /**
 *  Get a baseline reading from the sonic sensor
 */
-int getBaseline(){
+int getAvgReadings(int sz){
   sonicSum = 0;
-  for(i = 0; i < BUFFER_S; i++){
+  for(i = 0; i < sz; i++){
     sonicSum += scan();
   }
-  return sonicSum / BUFFER_S;
+  return sonicSum / sz;
+}
+
+/**
+*  Get a baseline reading from the sonic sensor
+*/
+int getMedianReadings(int sz){
+  int temp;
+  int *arr = new int[sz];
+  int ix, jx;
+  for(ix = 0; ix < sz; ix++){
+    arr[ix] = scan();
+  }
+  // the following two loops sort the array x in ascending order
+  for(ix = 0; ix < sz-1; ix++) {
+    for(jx = ix + 1; jx < sz; jx++) {
+      if(arr[jx] < arr[ix]) {
+        // swap elements
+        temp = arr[ix];
+        arr[ix] = arr[jx];
+        arr[jx] = temp;
+      }
+    }
+  }
+
+  if(sz % 2 == 0) {
+    // if there is an even number of elements, return mean of the two elements in the middle
+    temp = (arr[sz/2] + arr[sz/2 - 1]) / 2;
+    delete arr;
+    return temp;
+  } else {
+    // else return the element in the middle
+    temp = arr[sz/2];
+    delete arr;
+    return temp;
+  }
 }
 
 /**
@@ -147,7 +182,7 @@ void setArmed(int val){
       sleep(200);
     }
     
-    baseline = getBaseline();
+    baseline = getMedianReadings(BASELINE_S);
     armed = true;
     digitalWrite(GREEN_LED, HIGH);
     
