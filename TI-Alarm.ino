@@ -6,7 +6,7 @@
 
 #define BASELINE_S 20 // How many reading to use to measure our baseline
 
-#define TOLERANCE 0.5 // A number that represents how much deviation we allow.
+#define TOLERANCE 0.25 // A number that represents how much deviation we allow.
 
 int ledCount;
 int baseline = 0;
@@ -64,6 +64,8 @@ void loop(){
 
   if(armed && !alarm){
     sonicRead = getMedianReadings(BASELINE_S);
+    Serial.print("Median: ");
+    Serial.println(sonicRead);
     if(sonicRead < baseline / (1 + TOLERANCE) || sonicRead > baseline * (1 + TOLERANCE)) {
       alarm = true;
       ledCount = 0;
@@ -199,7 +201,7 @@ void loopServer(){
     }
     // close the connection:
     client.stop();
-    Serial.println("client disonnected");
+    Serial.println("client disconnected");
   }
 }
 
@@ -268,6 +270,8 @@ void setArmed(int val){
     }
 
     baseline = getMedianReadings(BASELINE_S);
+    Serial.print("Baseline set: ");
+    Serial.println(baseline);
     armed = true;
     digitalWrite(GREEN_LED, HIGH);
 
