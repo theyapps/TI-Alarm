@@ -17,7 +17,7 @@ int alarm = false;
 char ssid[] = "NSA-Probe23";
 //char ssid[] = "S6";
 // Network password
-char password[] = "TG1672G5D1CE2";
+char password[] = "";
 //char password[] = "rcb120030";
 // your network key Index number (needed only for WEP)
 int keyIndex = 0;
