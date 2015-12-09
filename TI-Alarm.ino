@@ -6,19 +6,18 @@
 
 #define BASELINE_S 20 // How many reading to use to measure our baseline
 
-#define TOLERANCE 0.25 // A number that represents how much deviation we allow.
+#define TOLERANCE 0.5 // A number that represents how much deviation we allow.
 
 int ledCount;
 int baseline = 0;
 int armed = false;
 int alarm = false;
 
+// Are we going to try to host rest end-points?
+int restServer = false;
 // Network name
 char ssid[] = "NSA-Probe23";
-//char ssid[] = "S6";
-// Network password
 char password[] = "";
-//char password[] = "rcb120030";
 // your network key Index number (needed only for WEP)
 int keyIndex = 0;
 
@@ -30,8 +29,13 @@ WiFiServer server(80);
 void setup(){
   Serial.begin(115200);      // initialize serial communication
   
-  setupServer();
-
+  if (restServer){
+    setupServer();
+  }
+  else {
+    Serial.println("Skipping server setup.");
+  }
+  
   /* Initialize pins */
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
@@ -48,6 +52,8 @@ void setup(){
 
   /* Initialize LED states to OFF */
   setLEDs("000");
+  
+  Serial.println("System initialized, and unarmed.");
 }
 
 /**
@@ -91,7 +97,9 @@ void loop(){
     }    
   }  
   
-  loopServer();
+  if(restServer) {
+    loopServer();
+  } 
 }
 
 /**
